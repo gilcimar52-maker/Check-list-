@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inspecao de Segmento</title>
+    <style>
+        :root {
+            --primary: #ff5000; /* Laranja Industrial */
+            --secondary: #0f172a;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            padding: 10px;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--secondary), #1e293b);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .header h2 { font-size: 18px; text-transform: uppercase; }
+        .header p { font-size: 12px; color: #94a3b8; }
+
+        .meta-container {
+            background: var(--card);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .info-box {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            color: #b45309;
+        }
+
+        .item-card {
+            background: var(--card);
+            border-left: 5px solid var(--primary);
+            padding: 10px;
+            border-radius: 4px 8px 8px 4px;
+            margin-bottom: 10px;
+            border-top: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .item-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .item-num {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .measure-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .measure-grid.duplo {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .measure-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 6px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .measure-box span {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #64748b;
+        }
+
+        /* Classes de validação automática */
+        .measure-box.input-ok {
+            background-color: #d1fae5;
+            border-color: #10b981;
+        }
+        .measure-box.input-error {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .measure-box input {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-submit { background: var(--success); }
+        .btn-clear { background: #64748b; }
+
+        #output-container {
+            display: none;
+            margin-top: 15px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px dashed var(--primary);
+        }
+        
+        #output-text {
+            width: 100%;
+            height: 180px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            resize: none;
+        }
+
+        .btn-copy { background: var(--secondary); padding: 8px; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Alinhamento de Segmento</h2>
+        <p>Padrão: 2mm +/- 0,10mm (Admissível: 1,90 a 2,10)</p>
+    </div>
+
+    <div class="meta-container">
+        <div class="form-row">
+            <div>
+                <label>Nº Equipamento / SEG:</label>
+                <input type="text" id="equipamento" placeholder="Ex: 8/14-10">
+            </div>
+            <div>
+                <label>OM nº:</label>
+                <input type="text" id="om" placeholder="Ex: 900035187706">
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                <label>Resp. Base Inferior:</label>
+                <input type="text" id="resp_inferior" placeholder="Nome">
+            </div>
+            <div>
+                <label>Resp. Base Superior:</label>
+                <input type="text" id="resp_superior" placeholder="Nome">
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                <label>Executante:</label>
+                <input type="text" id="executante" placeholder="Ex: Raphael Carvalho">
+            </div>
+            <div>
+                <label>Data:</label>
+                <input type="date" id="data_inspecao">
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <strong>Regra de Tolerância:</strong> Valores entre 1,90 e 2,10 ficarão <span style="color:var(--success);font-weight:bold;">verdes</span>. Fora disso ficarão <span style="color:var(--danger);font-weight:bold;">vermelhos</span> (Necessita Calço/Ajuste).
+    </div>
+
+    <form id="checklist-form">
+        
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 1</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="1" data-tipo="Grande" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="1" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="1" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 2</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="2" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="2" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="2" data-tipo="Grande" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 3</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="3" data-tipo="Grande" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="3" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="3" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Motriz</span> <span class="item-num">Nº 4</span></div>
+            <div class="measure-grid duplo">
+                <div class="measure-box"><span>Médio (Esq)</span><input type="number" step="0.01" data-item="4 (Motriz)" data-tipo="Médio Esq" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio (Dir)</span><input type="number" step="0.01" data-item="4 (Motriz)" data-tipo="Médio Dir" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos (Seq. A)</span> <span class="item-num">Nº 5</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="5 (Seq.A)" data-tipo="Grande" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="5 (Seq.A)" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="5 (Seq.A)" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos (Seq. B)</span> <span class="item-num">Nº 5</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="5 (Seq.B)" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="5 (Seq.B)" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="5 (Seq.B)" data-tipo="Grande" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 6</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="6" data-tipo="Grande" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="6" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="6" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 7</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="7" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="7" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="7" data-tipo="Grande" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 8</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="8" data-tipo="Grande" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="8" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="8" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="item-card">
+            <div class="item-title"><span>Rolos</span> <span class="item-num">Nº 9</span></div>
+            <div class="measure-grid">
+                <div class="measure-box"><span>Pequeno</span><input type="number" step="0.01" data-item="9" data-tipo="Pequeno" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Médio</span><input type="number" step="0.01" data-item="9" data-tipo="Médio" oninput="validarInput(this)"></div>
+                <div class="measure-box"><span>Grande</span><input type="number" step="0.01" data-item="9" data-tipo="Grande" oninput="validarInput(this)"></div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn btn-submit" onclick="gerarRelatorioTecnico()">Gerar Resumo para WhatsApp</button>
+            <button type="button" class="btn btn-clear" onclick="limparFormulario()">Limpar Tudo</button>
+        </div>
+    </form>
+
+    <div id="output-container">
+        <label>Relatório Técnico Formatado:</label>
+        <textarea id="output-text" readonly></textarea>
+        <button type="button" class="btn btn-copy" onclick="copiarTexto()">Copiar Texto</button>
+    </div>
+
+    <script>
+        // Insere data de hoje automaticamente
+        document.getElementById('data_inspecao').valueAsDate = new Date();
+
+        // Validação em tempo real (2mm +/- 0.10) -> Aceita de 1.90 até 2.10
+        function validarInput(input) {
+            const val = parseFloat(input.value);
+            const box = input.parentElement;
+            
+            if (isNaN(val)) {
+                box.classList.remove('input-ok', 'input-error');
+                return;
+            }
+
+            if (val >= 1.90 && val <= 2.10) {
+                box.classList.add('input-ok');
+                box.classList.remove('input-error');
+            } else {
+                box.classList.add('input-error');
+                box.classList.remove('input-ok');
+            }
+        }
+
+        // Compilação do relatório em texto estruturado
+        function gerarRelatorioTecnico() {
+            const equip = document.getElementById('equipamento').value.trim() || "N/I";
+            const om = document.getElementById('om').value.trim() || "N/I";
+            const respInf = document.getElementById('resp_inferior').value.trim() || "N/I";
+            const respSup = document.getElementById('resp_superior').value.trim() || "N/I";
+            const exec = document.getElementById('executante').value.trim() || "N/I";
+            const dataRaw = document.getElementById('data_inspecao').value;
+            const dataFormatada = dataRaw ? dataRaw.split('-').reverse().join('/') : "N/I";
+
+            let txt = `*MEDICÃO DE ALINHAMENTO DE ROLLS*\n`;
+            txt += `⚙️ SEG: ${equip} | OM: ${om}\n`;
+            txt += `📅 Data: ${dataFormatada} | Exec: ${exec}\n`;
+            txt += `--------------------------------\n`;
+            txt += `Inferior: ${respInf} | Superior: ${respSup}\n`;
+            txt += `--------------------------------\n`;
+            txt += `📊 LEITURAS REGISTRADAS:\n`;
+
+            const inputs = document.querySelectorAll('input[type="number"]');
+            let temDados = false;
+
+            inputs.forEach(input => {
+                if (input.value) {
+                    const val = parseFloat(input.value);
+                    const status = (val >= 1.90 && val <= 2.10) ? "✅ OK" : "❌ FORA";
+                    txt += `Item ${input.dataset.item} [${input.dataset.tipo}]: ${val.toFixed(2)}mm (${status})\n`;
+                    temDados = true;
+                }
+            });
+
+            if (!temDados) txt += `Nenhum valor numérico preenchido.\n`;
+            
+            txt += `--------------------------------\n`;
+            txt += `🔄 Giro livre efetuado em todos os rolos.`;
+
+            const container = document.getElementById('output-container');
+            const textarea = document.getElementById('output-text');
+            
+            textarea.value = txt;
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copiarTexto() {
+            const copyText = document.getElementById('output-text');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Copiado! Pronto para enviar no grupo da manutenção.");
+        }
+
+        function limparFormulario() {
+            if (confirm("Deseja apagar todas as medições?")) {
+                document.getElementById('checklist-form').reset();
+                document.querySelectorAll('.measure-box').forEach(b => b.classList.remove('input-ok', 'input-error'));
+                document.getElementById('output-container').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
